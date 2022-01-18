@@ -1,0 +1,7 @@
+X	Ensembl	Repeat	100	108	42	.	.	hid=trf; hstart=1; hend=21	
+X	Ensembl	Repeat	116	136	42	.	.	hid=trf; hstart=1; hend=21	
+X	Ensembl	Repeat	116	2419418	2502	-	.	hid=AluSx; hstart=1; hend=303	
+X	Ensembl	Repeat	116	136	0	.	.	hid=dust; hstart=108; hend=128	
+X	Ensembl	Pred.trans.	284	2418768	450.19	-	2	genscan=GENSCAN00000019335	
+some-id	some-other-name		131	231	some description	stuff			
+some-id2	some-other-name		158	164	some second description stuff				

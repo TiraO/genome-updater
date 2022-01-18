@@ -1,0 +1,11 @@
+{
+  "name": "genome_inserter",
+  "version": "1.0.0",
+  "description": "Add new bases into your genome and keep your .gtf file indexes making sense",
+  "main": "genome_inserter.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Tira Odhner",
+  "license": "MIT"
+}
