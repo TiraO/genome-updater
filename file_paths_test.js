@@ -1,6 +1,6 @@
 const { expect } = require("chai");
 
-const { derivativePath } = require("./path_helper");
+const { derivativePath } = require("./file_helper");
 
 describe("path_helper", () => {
   describe("derivativePath", () => {

@@ -1,11 +1,16 @@
 {
-  "name": "genome_inserter",
+  "name": "genome_updater",
   "version": "1.0.0",
   "description": "Add new bases into your genome and keep your .gtf file indexes making sense",
   "main": "genome_inserter.js",
   "scripts": {
-    "test": "mocha"
+    "test": "mocha ./*test.js"
   },
   "author": "Tira Odhner",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.1.4",
+    "underscore": "^1.13.2"
+  }
 }
