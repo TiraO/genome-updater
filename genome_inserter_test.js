@@ -1,11 +1,35 @@
 const {loadFile} = require("./file_helper");
 const {createTestDataFile, fileExists, removeAllTestDataFiles, testDataPath, testFixturePath} = require("./test_file_helper");
-let {runInsertion, insertSequence, parseGtf, toGtf} = require("./genome_inserter.js")
+let {runInsertion, insertSequence} = require("./genome_inserter.js")
 let {expect} = require("chai")
 const _ = require("underscore");
 //open questions
 // 1 index or 0 index on start in the .gtf file?
 // <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [attributes] [comments]
+const toGtf = (annotations) => {
+  return annotations.map((annotation) => {
+    let {seqname, source, feature, start, end, score, strand, frame, attributes, comments} = annotation;
+    let line = [seqname, source, feature, start, end, score, strand, frame, attributes, comments];
+    return line.join('\t');
+  }).join("\n");
+}
+
+
+let parseGtf = (tsv) => {
+  let lines = tsv.split("\n");
+  let rowsWithCells = lines.map((gtfLineText) => {
+    let line = gtfLineText.split('\t')
+    let [seqname, source, feature, start, end, score, strand, frame, attributes, comments] = line;
+    start = Number.parseInt(start);
+    end = Number.parseInt(end);
+
+    return {seqname, source, feature, start, end, score, strand, frame, attributes, comments};
+
+  });
+
+  return rowsWithCells;
+}
+
 describe('GenomeInserter', () => {
   describe('#insertSequence', () => {
     let newSequence, originalBases, originalGtfText;
