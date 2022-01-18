@@ -103,7 +103,10 @@ const runInsertion = async (basesPath, gtfPath, basesToInsertPath, annotationToI
     outputGtfPath = gtfPath.substr(0, extensionStart) + transformPart + extensionToUse;
   }
 
+
+  console.log("saving updated bases file as ", outputBasesPath);
   fs.writeFileSync(outputBasesPath, bases)
+  console.log("saving updated annotations file as ", outputGtfPath);
   fs.writeFileSync(outputGtfPath, gtfText)
 }
 
