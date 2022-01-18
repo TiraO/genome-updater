@@ -5,6 +5,7 @@ This project is designed to help a scientist update genome files so they can run
 ## Getting set up
 
 install nodejs
+
 install dependencies:
 ```bash
 npm install
