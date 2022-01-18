@@ -1,4 +1,6 @@
 # Genome Updater
+This project is designed to help a scientist update genome files so they can run simulations on a modified set of genes. Take a look at `example.js` to see how to use this. There are some example files in `test_fixtures/`
+
 
 ## Getting set up
 
