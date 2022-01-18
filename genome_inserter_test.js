@@ -3,32 +3,10 @@ const {createTestDataFile, fileExists, removeAllTestDataFiles, testDataPath, tes
 let {runInsertion, insertSequence} = require("./genome_inserter.js")
 let {expect} = require("chai")
 const _ = require("underscore");
-//open questions
-// 1 index or 0 index on start in the .gtf file?
-// <seqname> <source> <feature> <start> <end> <score> <strand> <frame> [attributes] [comments]
-const toGtf = (annotations) => {
-  return annotations.map((annotation) => {
-    let {seqname, source, feature, start, end, score, strand, frame, attributes, comments} = annotation;
-    let line = [seqname, source, feature, start, end, score, strand, frame, attributes, comments];
-    return line.join('\t');
-  }).join("\n");
-}
+const {formatSequenceLines, parseSequenceText} = require("./sequence_format_utils");
 
-
-let parseGtf = (tsv) => {
-  let lines = tsv.split("\n");
-  let rowsWithCells = lines.map((gtfLineText) => {
-    let line = gtfLineText.split('\t')
-    let [seqname, source, feature, start, end, score, strand, frame, attributes, comments] = line;
-    start = Number.parseInt(start);
-    end = Number.parseInt(end);
-
-    return {seqname, source, feature, start, end, score, strand, frame, attributes, comments};
-
-  });
-
-  return rowsWithCells;
-}
+const DNA_FILE_NAME = "dna.txt";
+const ANNOTATIONS_FILE_NAME = "annotations.gtf";
 
 describe('GenomeInserter', () => {
   describe('#insertSequence', () => {
@@ -70,19 +48,24 @@ describe('GenomeInserter', () => {
     })
     it('should update the locations of annotations that are after the insertion', () => {
       let result = insertSequence(originalBases, originalGtfText, newSequence)
-      let newAnnotations = parseGtf(result.gtfText);
+      let newAnnotations = parseSequenceText(result.gtfText);
 
       expect(newAnnotations[2].start).to.eq(18);
       expect(newAnnotations[2].end).to.eq(19);
     });
 
     it("writes the gtf ordered by start index of the annotations", () => {
+      let result = insertSequence(originalBases, originalGtfText, newSequence)
+      let newAnnotations = parseSequenceText(result.gtfText);
 
+      expect(newAnnotations[0].start).to.eq(2);
+      expect(newAnnotations[1].start).to.eq(5);
+      expect(newAnnotations[2].start).to.eq(18);
     });
 
     describe("when an annotation starts before the new annotation, but overlaps it", () => {
       beforeEach(() => {
-        originalGtfText = toGtf([{seqname: "overlapper", start: 2, end: 8}]);
+        originalGtfText = formatSequenceLines([{seqname: "overlapper", start: 2, end: 8}]);
       });
 
       it("updates the end index of the existing annotation", () => {
@@ -96,12 +79,12 @@ describe('GenomeInserter', () => {
   describe("#runInsertion", () => {
     beforeEach(async () => {
       await removeAllTestDataFiles();
-      createTestDataFile("dna.txt", loadFile(testFixturePath("dna.txt")))
-      createTestDataFile("annotations.gtf", loadFile(testFixturePath("annotations.gtf")))
+      createTestDataFile(DNA_FILE_NAME, loadFile(testFixturePath(DNA_FILE_NAME)))
+      createTestDataFile(ANNOTATIONS_FILE_NAME, loadFile(testFixturePath(ANNOTATIONS_FILE_NAME)))
     });
 
     it("creates a new bases file and annotations file", async () => {
-      await runInsertion(testDataPath("dna.txt"), testDataPath("annotations.gtf"),
+      await runInsertion(testDataPath(DNA_FILE_NAME), testDataPath(ANNOTATIONS_FILE_NAME),
         testFixturePath("new_gene.txt"), testFixturePath("new_gene.gtf"))
       expect(fileExists(testDataPath("dna_altered.txt"))).to.eq(true)
       expect(fileExists(testDataPath("annotations_altered.gtf"))).to.eq(true);

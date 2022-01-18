@@ -1,5 +1,23 @@
-const fs = require("fs");
-const _ = require("underscore")
+const _ = require("underscore");
+const {loadFile, writeFile} = require("./file_helper");
+const {parseSequenceLine, formatSequenceLine, formatSequenceLines, parseSequenceText} = require("./sequence_format_utils");
+
+function mapSequence(annotations, sequence) {
+  return annotations.map((annotation) => {
+    let {start, end} = annotation;
+    if (start > sequence.annotation.start) {
+      start += sequence.bases.length;
+    }
+    if (end > sequence.annotation.start) {
+      end += sequence.bases.length;
+    }
+    return {
+      ...annotation,
+      start,
+      end
+    }
+  });
+}
 
 let insertSequence = (originalBases, originalGtfText, newSequence) => {
   let bases = ""
@@ -9,14 +27,7 @@ let insertSequence = (originalBases, originalGtfText, newSequence) => {
   bases += newSequence.bases;
   bases += afterBases;
 
-  let lines = originalGtfText.split("\n");
-  let annotations = lines.map((line) => {
-    line = line.split('\t')
-    let [seqname, source, feature, start, end, score, strand, frame, attributes, comments] = line;
-    start = Number.parseInt(start);
-    end = Number.parseInt(end);
-    return {seqname, source, feature, start, end, score, strand, frame, attributes, comments};
-  });
+  let annotations = parseSequenceText(originalGtfText);
 
   let [beforeAnnotations, afterAnnotations] = _.partition(annotations, (annotation) => {
     return annotation.start < newSequence.annotation.start
@@ -27,87 +38,43 @@ let insertSequence = (originalBases, originalGtfText, newSequence) => {
   }
 
   let allAnnotations = [
-    ...(beforeAnnotations.map((annotation) => {
-      let {start, end} = annotation;
-      if (start > newSequence.annotation.start) {
-        start += newSequence.bases.length;
-      }
-      if (end > newSequence.annotation.start) {
-        end += newSequence.bases.length;
-      }
-      return {
-        ...annotation,
-        start,
-        end
-      }
-    })),
+    ...(mapSequence(beforeAnnotations, newSequence)),
     newSequence.annotation,
-    ...(afterAnnotations.map((annotation) => {
-      let {start, end} = annotation;
-      if (start > newSequence.annotation.start) {
-        start += newSequence.bases.length;
-      }
-      if (end > newSequence.annotation.start) {
-        end += newSequence.bases.length;
-      }
-      return {
-        ...annotation,
-        start,
-        end
-      }
-    }))
+    ...(mapSequence(afterAnnotations, newSequence))
   ];
 
-  let gtfText = _.map(allAnnotations, (annotation) => {
-    let {seqname, source, feature, start, end, score, strand, frame, attributes, comments} = annotation;
-    let line = [seqname, source, feature, start, end, score, strand, frame, attributes, comments];
-    return line.join('\t');
-  }).join('\n');
+  let gtfText = formatSequenceLines(allAnnotations);
   return {bases, annotations: allAnnotations, gtfText};
 }
 
+function getOutputFilePath(outputPath, inputPath) {
+  if (!outputPath) {
+    let extensionStart = inputPath.lastIndexOf('.');
+    let extensionToUse = inputPath.substr(extensionStart);
+    let transformPart = "_altered";
+    outputPath = inputPath.substr(0, extensionStart) + transformPart + extensionToUse;
+  }
+  return outputPath;
+}
+
 const runInsertion = async (basesPath, gtfPath, basesToInsertPath, annotationToInsertPath, outputBasesPath, outputGtfPath) => {
-  let originalBases = fs.readFileSync(basesPath, "UTF-8");
-  let originalGtfText = fs.readFileSync(gtfPath, "UTF-8");
-  let newBases = fs.readFileSync(basesToInsertPath, "UTF-8");
-  let gtfLineText = fs.readFileSync(annotationToInsertPath, "UTF-8");
+  let originalBases = loadFile(basesPath);
+  let originalGtfText = loadFile(gtfPath);
+  let newBases = loadFile(basesToInsertPath);
+  let gtfLineText = loadFile(annotationToInsertPath);
 
-  let lines = gtfLineText.split("\n");
-  let rowsWithCells = lines.map((gtfLineText) => {
-    let line = gtfLineText.split('\t')
-    let [seqname, source, feature, start, end, score, strand, frame, attributes, comments] = line;
-    start = Number.parseInt(start);
-    end = Number.parseInt(end);
-
-    return {seqname, source, feature, start, end, score, strand, frame, attributes, comments};
-  });
+  let rowsWithCells = parseSequenceText(gtfLineText);
   let annotationToInsert = rowsWithCells[0];
 
   let newSequence = {bases: newBases, annotation: annotationToInsert};
 
   let {bases, gtfText} = insertSequence(originalBases, originalGtfText, newSequence)
 
-  if(!outputBasesPath){
-    let extensionStart = basesPath.lastIndexOf('.');
-    let extensionToUse = basesPath.substr(extensionStart);
-    let transformPart = "";
-    transformPart = "_altered";
-    outputBasesPath = basesPath.substr(0, extensionStart) + transformPart + extensionToUse;
-  }
+  const updatedBasesPath = getOutputFilePath(outputBasesPath, basesPath);
+  const updatedGtfPath = getOutputFilePath(outputGtfPath, gtfPath);
 
-  if(!outputGtfPath){
-    let extensionStart = gtfPath.lastIndexOf('.');
-    let extensionToUse = gtfPath.substr(extensionStart);
-    let transformPart = "";
-    transformPart = "_altered";
-    outputGtfPath = gtfPath.substr(0, extensionStart) + transformPart + extensionToUse;
-  }
-
-
-  console.log("saving updated bases file as ", outputBasesPath);
-  fs.writeFileSync(outputBasesPath, bases)
-  console.log("saving updated annotations file as ", outputGtfPath);
-  fs.writeFileSync(outputGtfPath, gtfText)
+  writeFile(updatedBasesPath, bases, "bases");
+  writeFile(updatedGtfPath, gtfText, "annotations");
 }
 
-module.exports = {insertSequence, runInsertion}
+module.exports = {insertSequence, runInsertion, formatSequenceLine, parseSequenceLine, getOutputFilePath}

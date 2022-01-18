@@ -1,6 +1,4 @@
-const readline = require("readline");
 const fs = require('fs');
-const path = require('path');
 
 /**
  * this helps with keeping track of what file came from where
@@ -16,7 +14,7 @@ const derivativePath = function (filePath, transformName = "", extension) {
   let extensionStart = filePath.lastIndexOf('.');
   let extensionToUse;
   if (extension) {
-    if (extension[0] == '.') {
+    if (extension[0] === '.') {
       extensionToUse = extension;
     } else {
       extensionToUse = '.' + extension;
@@ -34,5 +32,11 @@ const derivativePath = function (filePath, transformName = "", extension) {
 
 function loadFile(filePath) {
  return fs.readFileSync(filePath, "UTF-8");
-};
-module.exports = {derivativePath, loadFile}
+}
+
+function writeFile(updatedFilePath, text, name) {
+  console.log(`saving updated ${name} file as `, updatedFilePath);
+  fs.writeFileSync(updatedFilePath, text);
+}
+
+module.exports = {derivativePath, loadFile, writeFile}
