@@ -5,7 +5,7 @@ let {expect} = require("chai")
 const _ = require("underscore");
 const {formatSequenceLines, parseSequenceText} = require("./sequence_format_utils");
 
-const DNA_FILE_NAME = "dna.txt";
+const DNA_FILE_NAME = "dna.fasta";
 const ANNOTATIONS_FILE_NAME = "annotations.gtf";
 
 describe('GenomeInserter', () => {
@@ -24,7 +24,7 @@ describe('GenomeInserter', () => {
         "some-id2\tsome-other-name\tfeat\t8\t9\tsome second description stuff"
     });
 
-    it('should add the sequence to dna_output.txt', () => {
+    it('should add the sequence to dna_output.fasta', () => {
       let result = insertSequence(originalBases, originalGtfText, newSequence)
       let newBases = result.bases;
       expect(newBases).to.eq("AAAAATAGCTAaaccAAAAA");
@@ -85,8 +85,8 @@ describe('GenomeInserter', () => {
 
     it("creates a new bases file and annotations file", async () => {
       await runInsertion(testDataPath(DNA_FILE_NAME), testDataPath(ANNOTATIONS_FILE_NAME),
-        testFixturePath("new_gene.txt"), testFixturePath("new_gene.gtf"))
-      expect(fileExists(testDataPath("dna_altered.txt"))).to.eq(true)
+        testFixturePath("new_gene.fasta"), testFixturePath("new_gene.gtf"))
+      expect(fileExists(testDataPath("dna_altered.fasta"))).to.eq(true)
       expect(fileExists(testDataPath("annotations_altered.gtf"))).to.eq(true);
     });
 
