@@ -2,7 +2,7 @@ const _ = require("underscore");
 const {loadFile, writeFile} = require("./file_helper");
 const {parseSequenceLine, formatSequenceLine, formatSequenceLines, parseSequenceText} = require("./sequence_format_utils");
 
-function mapSequence(annotations, sequence) {
+function offsetAnnotations(annotations, sequence) {
   return annotations.map((annotation) => {
     let {start, end} = annotation;
     if (start > sequence.annotation.start) {
@@ -38,9 +38,9 @@ let insertSequence = (originalBases, originalGtfText, newSequence) => {
   }
 
   let allAnnotations = [
-    ...(mapSequence(beforeAnnotations, newSequence)),
+    ...(offsetAnnotations(beforeAnnotations, newSequence)),
     newSequence.annotation,
-    ...(mapSequence(afterAnnotations, newSequence))
+    ...(offsetAnnotations(afterAnnotations, newSequence))
   ];
 
   let gtfText = formatSequenceLines(allAnnotations);
